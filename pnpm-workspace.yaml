@@ -1,0 +1,6 @@
+packages:
+  - packages/*
+catalog:
+  tsx: ^4.19.3
+  typescript: ^5.8.2
+  unbuild: ^3.5.0
