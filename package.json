@@ -5,8 +5,7 @@
   "private": true,
   "scripts": {
     "build": "unbuild",
-    "stub": "unbuild --stub",
-    "start": "tsx src/main.ts"
+    "stub": "unbuild --stub"
   },
   "keywords": [],
   "author": "",

@@ -1,19 +1,26 @@
-import parser from "@babel/parser";
+import * as parser from "@babel/parser";
+import _traverse from "@babel/traverse";
 
-parser.parse("const a = 1;", {
+// https://github.com/babel/babel/issues/13855
+// @ts-ignore
+const traverse = _traverse.default as typeof _traverse;
+
+const code = `function square(n:number): number {
+  return n * n;
+}`;
+
+const ast = parser.parse(code, {
   sourceType: "module",
-  plugins: ["jsx"],
-  strictMode: false,
-  ranges: true,
-  tokens: true,
-  createParenthesizedExpressions: true,
-  createImportExpressions: true,
+  plugins: ["jsx", "typescript"],
+  strictMode: true,
   sourceFilename: "filename",
-  startIndex: 0,
-  startLine: 0,
-  startColumn: 0,
 });
 
-export function hello() {
-  console.log("Hello, world!");
-}
+traverse(ast, {
+  enter(path) {
+    if (path.isIdentifier({ name: "n" })) {
+      console.log("n:", path.node.name);
+      path.node.name = "x";
+    }
+  },
+});
