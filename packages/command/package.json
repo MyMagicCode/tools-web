@@ -1,5 +1,5 @@
 {
-  "name": "tools-web",
+  "name": "@tools-web/command",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",
@@ -15,6 +15,6 @@
     "tsx": "catalog:"
   },
   "dependencies": {
-    "api-auth": "workspace:^"
+    "@tools-web/tools": "workspace:^"
   }
 }
