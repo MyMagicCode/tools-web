@@ -1,5 +1,6 @@
 import * as parser from "@babel/parser";
 import _traverse from "@babel/traverse";
+import { PathResolver } from "./utils";
 
 // https://github.com/babel/babel/issues/13855
 // @ts-ignore
@@ -14,6 +15,102 @@ const ast = parser.parse(code, {
   plugins: ["jsx", "typescript"],
   strictMode: true,
   sourceFilename: "filename",
+});
+
+let paths = [
+  {
+    name: "入库单列表",
+    componentPath: "./warehousing/InventoryIn/index.vue",
+  },
+  {
+    name: "新增入库单",
+    componentPath: "./warehousing/InventoryIn/create/index.vue",
+  },
+  {
+    name: "入库单详情",
+    componentPath: "./warehousing/InventoryIn/detail.vue",
+  },
+  {
+    name: "入库",
+    componentPath: "./warehousing/InventoryIn/edit/index.vue",
+  },
+  {
+    name: "入库明细",
+    componentPath: "./warehousing/InventoryIn/SlipDetails/index.vue",
+  },
+  {
+    name: "出库单列表",
+    componentPath: "./warehousing/InventoryOut/index.vue",
+  },
+  {
+    name: "新增出库",
+    componentPath: "./warehousing/InventoryOut/create/index.vue",
+  },
+  {
+    name: "出库",
+    componentPath: "./warehousing/InventoryOut/edit/index.vue",
+  },
+  {
+    name: "出库单详情",
+    componentPath: "./warehousing/InventoryOut/detail.vue",
+  },
+  {
+    name: "出库明细",
+    componentPath: "./warehousing/InventoryOut/SlipDetails/index.vue",
+  },
+  {
+    name: "DF可售库存",
+    componentPath: "./warehousing/df-inventory/list.vue",
+  },
+  {
+    name: "库存管理",
+    componentPath: "./warehousing/InventoryManage/index.vue",
+  },
+  {
+    name: "仓库配置",
+    componentPath: "./warehousing/warehouseConfiguration/index.vue",
+  },
+  {
+    name: "仓库配置详情",
+    componentPath: "./warehousing/warehouseConfiguration/detail.vue",
+  },
+  {
+    name: "增值服务",
+    componentPath: "./warehousing/storage-serve/increment-serve/list/index.vue",
+  },
+  {
+    name: "新增增值服务单",
+    componentPath: "./warehousing/storage-serve/increment-serve/add/index.vue",
+  },
+  {
+    name: "增值服务单详情",
+    componentPath:
+      "./warehousing/storage-serve/increment-serve/detail/index.vue",
+  },
+  {
+    name: "库内加工",
+    componentPath: "./warehousing/storage-serve/adjustment-bill/list/index.vue",
+  },
+  {
+    name: "加工单详情",
+    componentPath: "./warehousing/storage-serve/adjustment-bill/detail/index",
+  },
+  {
+    name: "新增加工单",
+    componentPath: "./warehousing/storage-serve/adjustment-bill/add/index",
+  },
+  {
+    name: "测试",
+    componentPath: "@/views/goods-center/goods-list/edit",
+  },
+];
+
+const viewPath = `D:\\aplus\\aplus-user-WMS\\src\\views`;
+
+const resolver = new PathResolver(`D:\\aplus\\aplus-user-WMS`);
+
+paths.map((path) => {
+  console.log("resolve:", resolver.sync(viewPath, path.componentPath));
 });
 
 traverse(ast, {
