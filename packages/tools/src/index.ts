@@ -88,29 +88,22 @@ let paths = [
       "./warehousing/storage-serve/increment-serve/detail/index.vue",
   },
   {
-    name: "库内加工",
-    componentPath: "./warehousing/storage-serve/adjustment-bill/list/index.vue",
-  },
-  {
-    name: "加工单详情",
-    componentPath: "./warehousing/storage-serve/adjustment-bill/detail/index",
-  },
-  {
-    name: "新增加工单",
-    componentPath: "./warehousing/storage-serve/adjustment-bill/add/index",
-  },
-  {
     name: "测试",
     componentPath: "@/views/goods-center/goods-list/edit",
   },
 ];
 
-const viewPath = `D:\\aplus\\aplus-user-WMS\\src\\views`;
+const viewPath = `/Users/mac/Desktop/work/aplus-user-WMS/src/views`;
+const rootPath = `/Users/mac/Desktop/work/aplus-user-WMS`;
 
-const resolver = new PathResolver(`D:\\aplus\\aplus-user-WMS`);
+const resolver = new PathResolver(rootPath, viewPath);
 
-paths.map((path) => {
-  console.log("resolve:", resolver.sync(viewPath, path.componentPath));
+const menuPaths = paths.map((path) => {
+  return resolver.getMenuPath(path.componentPath);
+});
+
+menuPaths.forEach((path) => {
+  console.log("path:", path);
 });
 
 traverse(ast, {

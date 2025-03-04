@@ -1,20 +1,31 @@
 import { ResolverFactory } from "oxc-resolver";
-import path from "path";
 
+/** 解析路径绝对路径 */
 export class PathResolver extends ResolverFactory {
-  constructor(rootPath: string) {
+  private _viewPath: string;
+  constructor(rootPath: string, viewPath: string) {
     // bug ESNext
     // const tsconfigPath = path.join(rootPath, "tsconfig.json");
     super({
       extensions: [".js", ".jsx", ".ts", ".tsx", ".vue"],
       roots: [rootPath],
-      // "@/*": ["src/*"],
-      // "#/*": ["types/*"]
       alias: {
         "@": ["/src"],
         "#": ["/types"],
       },
+      // tsconfig: {
+      //   configFile: tsconfigPath,
+      //   references: "auto",
+      // },
       conditionNames: ["node", "import"],
     });
+    this._viewPath = viewPath;
+  }
+  /**
+   * 获取菜单绝对路径
+   * @returns
+   */
+  getMenuPath(menuPath: string) {
+    return this.sync(this._viewPath, menuPath);
   }
 }
