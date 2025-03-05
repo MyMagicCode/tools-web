@@ -1,21 +1,18 @@
-import * as parser from "@babel/parser";
-import _traverse from "@babel/traverse";
-import { PathResolver } from "./utils";
+import _traverse, { NodePath } from "@babel/traverse";
+import {
+  PathResolver,
+  getArgumentsUrlValue,
+  getScopeFunctionName,
+  getVarRefProperty,
+  parseFile,
+  tsEnumToObject,
+} from "./utils";
+import path from "path";
+import { writeFileSync } from "fs";
 
 // https://github.com/babel/babel/issues/13855
 // @ts-ignore
 const traverse = _traverse.default as typeof _traverse;
-
-const code = `function square(n:number): number {
-  return n * n;
-}`;
-
-const ast = parser.parse(code, {
-  sourceType: "module",
-  plugins: ["jsx", "typescript"],
-  strictMode: true,
-  sourceFilename: "filename",
-});
 
 let paths = [
   {
@@ -93,6 +90,13 @@ let paths = [
   },
 ];
 
+// let paths = [
+//   {
+//     name: "入库单列表",
+//     componentPath: "@/api/common/index.ts",
+//   },
+// ];
+
 const viewPath = `/Users/mac/Desktop/work/aplus-user-WMS/src/views`;
 const rootPath = `/Users/mac/Desktop/work/aplus-user-WMS`;
 
@@ -102,15 +106,153 @@ const menuPaths = paths.map((path) => {
   return resolver.getMenuPath(path.componentPath);
 });
 
-menuPaths.forEach((path) => {
-  console.log("path:", path);
+interface File {
+  path: string;
+  imports: {
+    specifier: string[];
+    source: string;
+  }[];
+  apiMap: Record<string, { method: string; url: string | string[] }>;
+}
+
+const fileMap = new Map<string, File>();
+
+menuPaths.forEach((item) => {
+  if (item?.path) {
+    getDeepFileTree(item?.path);
+  }
 });
 
-traverse(ast, {
-  enter(path) {
-    if (path.isIdentifier({ name: "n" })) {
-      console.log("n:", path.node.name);
-      path.node.name = "x";
-    }
-  },
-});
+/** 是否是忽略的路径 */
+function isIgnorePath(filePath: string) {
+  return (
+    filePath.includes("node_modules") ||
+    filePath.includes("virtual:svg-icons-names")
+  );
+}
+
+export function getDeepFileTree(filePath: string) {
+  if (fileMap.has(filePath)) {
+    return;
+  }
+
+  const file: File = {
+    path: filePath,
+    imports: [],
+    apiMap: {},
+  };
+  const dirPath = path.dirname(filePath);
+  const ast = parseFile(filePath);
+
+  fileMap.set(filePath, file);
+
+  traverse(ast, {
+    Program: {
+      enter(path) {
+        // 保存枚举
+        path.state = {
+          varMap: {},
+        };
+      },
+    },
+    Declaration(path) {
+      if (path.scope.block.type === "Program") {
+        switch (path.node.type) {
+          case "TSEnumDeclaration":
+            path.state.varMap[path.node.id.name] = tsEnumToObject(
+              path.node,
+              path.state.varMap
+            );
+            break;
+          case "VariableDeclaration":
+            path.node.declarations.forEach((declaration) => {
+              if (
+                declaration.id.type === "Identifier" &&
+                declaration.init?.type === "StringLiteral"
+              ) {
+                path.state.varMap[declaration.id.name] =
+                  declaration.init?.value;
+              }
+            });
+            break;
+        }
+      }
+    },
+    ImportDeclaration(path) {
+      const filePath = resolver.sync(dirPath, path.node.source.value);
+
+      // 过滤node_modules
+      if (!filePath.path || isIgnorePath(filePath.path)) {
+        if (filePath.error) {
+          console.warn("filePath", filePath.error);
+        }
+        return;
+      }
+
+      const specifier = path.node.specifiers
+        .map((specifier) => {
+          // 处理 import { a as b } from 'c'
+          if (specifier.type === "ImportSpecifier") {
+            return specifier.imported.type === "Identifier"
+              ? specifier.imported.name
+              : specifier.imported.value;
+          }
+
+          // TODO: 处理 import a from 'c'
+          if (specifier.type === "ImportDefaultSpecifier") {
+            const properties = getVarRefProperty(path, specifier.local.name);
+            return properties;
+          }
+
+          // TODO: 处理 import * as a from 'c'
+          if (specifier.type === "ImportNamespaceSpecifier") {
+            const properties = getVarRefProperty(path, specifier.local.name);
+            console.log("properties", properties, specifier.local.name);
+
+            return properties;
+          }
+        })
+        .filter(Boolean)
+        .flat(1) as string[];
+
+      file.imports.push({
+        specifier: specifier,
+        source: filePath.path || path.node.source.value,
+      });
+    },
+    CallExpression(path) {
+      if (path.node.callee.type === "MemberExpression") {
+        const member = path.node.callee;
+        // 处理 defHttp.xxx 的调用
+        if (
+          member.object.type === "Identifier" &&
+          member.object.name === "defHttp"
+        ) {
+          const fnName = getScopeFunctionName(path);
+          file.apiMap[fnName] = {
+            method: "",
+            url:
+              getArgumentsUrlValue(path.node.arguments, path.state.varMap) ||
+              "",
+          };
+
+          // 获取调用方法 post/get/put/delete
+          const property = path.node.callee.property;
+          if (property.type === "Identifier" && file.apiMap[fnName]) {
+            file.apiMap[fnName].method = property.name;
+          }
+        }
+      }
+    },
+  });
+
+  file.imports.forEach((item) => {
+    getDeepFileTree(item.source);
+  });
+}
+
+// 写入文件
+writeFileSync(
+  "./file.json",
+  JSON.stringify(Object.fromEntries(fileMap), null, 2)
+);

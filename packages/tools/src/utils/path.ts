@@ -7,7 +7,7 @@ export class PathResolver extends ResolverFactory {
     // bug ESNext
     // const tsconfigPath = path.join(rootPath, "tsconfig.json");
     super({
-      extensions: [".js", ".jsx", ".ts", ".tsx", ".vue"],
+      extensions: [".js", ".jsx", ".ts", ".tsx", ".vue", ".d.ts"],
       roots: [rootPath],
       alias: {
         "@": ["/src"],
