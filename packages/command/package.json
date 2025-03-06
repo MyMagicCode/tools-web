@@ -15,6 +15,6 @@
     "tsx": "catalog:"
   },
   "dependencies": {
-    "@tools-web/tools": "workspace:^"
+    "@tools-web/core": "workspace:^"
   }
 }
