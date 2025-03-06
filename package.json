@@ -6,7 +6,9 @@
   "scripts": {
     "build": "unbuild",
     "stub": "unbuild --stub",
-    "start:core": "pnpm --filter core run start "
+    "start:core": "pnpm --filter core run start",
+    "start:command": "pnpm --filter command run start",
+    "start:web": "pnpm --filter web run start"
   },
   "keywords": [],
   "author": "",
