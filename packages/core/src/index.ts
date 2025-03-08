@@ -1,4 +1,5 @@
-import { TraverseMenus } from "./utils";
+import { aplusNetwork } from "./network";
+import { Menu, TraverseMenus } from "./utils";
 import { writeFileSync } from "fs";
 
 let paths = [
@@ -77,22 +78,58 @@ let paths = [
   },
 ];
 
-// let paths = [
-//   {
-//     name: "入库单列表",
-//     componentPath: "@/api/common/index.ts",
-//   },
-// ];
-
 const viewPath = `/Users/mac/Desktop/work/aplus-user-WMS/src/views`;
 const rootPath = `/Users/mac/Desktop/work/aplus-user-WMS`;
 
 const t = new TraverseMenus(rootPath, viewPath);
 
-t.traverseMenus(paths);
+const aplus = new aplusNetwork();
 
-// 写入文件
-writeFileSync(
-  "./file.json",
-  JSON.stringify(Object.fromEntries(t.fileMap), null, 2)
-);
+const result = aplus.post("authorize/menus/mangerMenuList", {
+  json: {
+    platform: "APLUS",
+    position: "LEFT",
+  },
+});
+
+result.then((r) => {
+  const menus = r.body;
+
+  t.traverseMenus(filterMenuType(menus));
+
+  // 写入文件
+  writeFileSync(
+    "./file.json",
+    JSON.stringify(Object.fromEntries(t.fileMap), null, 2)
+  );
+
+  // console.dir(filterMenuType(menus), { depth: 3 });
+});
+
+function filterMenuType(menuList: any[], buttonCodes?: Menu["buttonCodes"]) {
+  const result: Menu[] = [];
+  menuList.forEach((item) => {
+    let menu: Menu | null = null;
+    if (item.menuType === "2") {
+      menu = {
+        name: item.zhName,
+        componentPath: item.component,
+        menuCode: item.menuCode,
+        buttonCodes: [],
+      };
+      result.push(menu);
+    }
+
+    if (item.menuType === "3" && buttonCodes) {
+      buttonCodes.push({
+        name: item.zhName,
+        menuCode: item.menuCode,
+      });
+    }
+
+    if (item.children?.length > 0) {
+      result.push(...filterMenuType(item.children, menu?.buttonCodes));
+    }
+  });
+  return result;
+}

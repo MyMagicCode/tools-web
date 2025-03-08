@@ -26,6 +26,6 @@ export class PathResolver extends ResolverFactory {
    * @returns
    */
   getMenuPath(menuPath: string) {
-    return this.sync(this._viewPath, menuPath);
+    return this.sync(this._viewPath, "." + menuPath);
   }
 }

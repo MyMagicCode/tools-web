@@ -22,9 +22,11 @@ export interface File {
   apiMap: Record<string, { method: string; url: string | string[] }>;
 }
 
-interface Menu {
+export interface Menu {
   name: string;
+  menuCode: string;
   componentPath: string;
+  buttonCodes: Omit<Menu, "buttonCodes" | "componentPath">[];
 }
 
 export class TraverseMenus {
@@ -36,15 +38,36 @@ export class TraverseMenus {
     this.fileMap = new Map<string, File>();
   }
   traverseMenus(menus: Menu[]) {
-    menus.forEach((item) => {
+    return menus.map((item) => {
       const pathResult = this.resolver.getMenuPath(item.componentPath);
-
       if (pathResult?.path) {
         this.deepFileTree(pathResult.path);
+        const apiList = this.getMenuApiListByPath(pathResult?.path);
+        console.log("apiList", apiList);
+        return {
+          ...item,
+          apiList,
+        };
       }
     });
   }
+  getMenuApiListByPath(path: string, specifier?: string[]) {
+    const file = this.fileMap.get(path);
+
+    return specifier?.map((key) => {
+      if (file?.apiMap[key]) {
+        return file?.apiMap[key];
+      }
+      console.warn(`未找到, key: ${key},path: ${path}`);
+    });
+  }
   private deepFileTree(filePath: string) {
+    // 检查文件扩展名
+    const validExtensions = [".ts", ".tsx", ".js", ".jsx", ".vue"];
+    const fileExtension = path.extname(filePath);
+    if (!validExtensions.includes(fileExtension)) {
+      return; // 如果文件类型不符合，直接返回
+    }
     if (this.fileMap.has(filePath)) {
       return;
     }

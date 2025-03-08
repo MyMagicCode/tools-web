@@ -63,6 +63,9 @@ importers:
       '@vue/compiler-dom':
         specifier: ^3.5.13
         version: 3.5.13
+      ky:
+        specifier: ^1.7.5
+        version: 1.7.5
       oxc-resolver:
         specifier: 1.6.0
         version: 1.6.0
@@ -1951,6 +1954,10 @@ packages:
 
   knitwork@1.2.0:
     resolution: {integrity: sha512-xYSH7AvuQ6nXkq42x0v5S8/Iry+cfulBz/DJQzhIyESdLD7425jXsPy4vn5cCXU+HhRN2kVw51Vd1K6/By4BQg==}
+
+  ky@1.7.5:
+    resolution: {integrity: sha512-HzhziW6sc5m0pwi5M196+7cEBtbt0lCYi67wNsiwMUmz833wloE0gbzJPWKs1gliFKQb34huItDQX97LyOdPdA==}
+    engines: {node: '>=18'}
 
   language-subtag-registry@0.3.23:
     resolution: {integrity: sha512-0K65Lea881pHotoGEa5gDlMxt3pctLi2RplBb7Ezh4rRdLEOtgi7n4EwK9lamnUCkKBqaeKRVebTq6BAxSkpXQ==}
@@ -4615,6 +4622,8 @@ snapshots:
       json-buffer: 3.0.1
 
   knitwork@1.2.0: {}
+
+  ky@1.7.5: {}
 
   language-subtag-registry@0.3.23: {}
 
